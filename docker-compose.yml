@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: yogin-postgres
+    environment:
+      POSTGRES_DB: yogin_db
+      POSTGRES_USER: yogin_user
+      POSTGRES_PASSWORD: yogin_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - yogin-network
+
+  # Go Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: yogin-backend
+    environment:
+      DB_HOST: postgres
+      DB_USER: yogin_user
+      DB_PASSWORD: yogin_password
+      DB_NAME: yogin_db
+      DB_PORT: 5432
+      PORT: 8080
+      JWT_SECRET: your-super-secret-jwt-key-here
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - yogin-network
+    restart: unless-stopped
+
+  # Python AI Server
+  ai-server:
+    build:
+      context: ./ai-server
+      dockerfile: Dockerfile
+    container_name: yogin-ai-server
+    environment:
+      PORT: 8000
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CALORIE_NINJAS_API_KEY: ${CALORIE_NINJAS_API_KEY}
+      NUTRITIONIX_APP_ID: ${NUTRITIONIX_APP_ID}
+      NUTRITIONIX_APP_KEY: ${NUTRITIONIX_APP_KEY}
+      EDAMAM_APP_ID: ${EDAMAM_APP_ID}
+      EDAMAM_APP_KEY: ${EDAMAM_APP_KEY}
+      USDA_API_KEY: ${USDA_API_KEY}
+    ports:
+      - "8000:8000"
+    networks:
+      - yogin-network
+    restart: unless-stopped
+
+  # Frontend (Next.js) - agar kerak bo'lsa
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: yogin-frontend
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:8080
+      NEXT_PUBLIC_AI_SERVER_URL: http://ai-server:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+      - ai-server
+    networks:
+      - yogin-network
+    restart: unless-stopped
+
+  # Redis (cache uchun)
+  redis:
+    image: redis:7-alpine
+    container_name: yogin-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - yogin-network
+    restart: unless-stopped
+
+  # Nginx (reverse proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: yogin-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+      - ai-server
+      - frontend
+    networks:
+      - yogin-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  yogin-network:
+    driver: bridge 
