@@ -36,7 +36,8 @@ yogin.uz/
 │   │   ├── calorieninjas.py
 │   │   ├── nutritionix.py
 │   │   ├── edamam.py
-│   │   └── usda.py
+│   │   ├── usda.py
+│   │   └── openfoodfacts.py
 │   ├── llm/                 # LLM modullari
 │   ├── schemas/             # Ma'lumotlar strukturasi
 │   └── main.py
@@ -77,6 +78,10 @@ npm run dev
 ### AI Server API
 - `POST /api/analyze-food` - Ovqat tahlili va kaloriya hisoblash
 - `GET /api/nutrition/{food_name}` - Oziq-ovqat ma'lumotlari
+- `GET /api/openfoodfacts/search` - Open Food Facts da qidirish
+- `GET /api/openfoodfacts/barcode/{barcode}` - Barkod bo'yicha mahsulot
+- `GET /api/openfoodfacts/categories` - Kategoriyalar ro'yxati
+- `GET /api/openfoodfacts/brands` - Brendlar ro'yxati
 
 ## 📊 Ma'lumotlar Bazasi
 
@@ -85,6 +90,21 @@ PostgreSQL ma'lumotlar bazasi quyidagi jadvallarni o'z ichiga oladi:
 - `plans` - Ovqatlanish rejalari
 - `food_logs` - Ovqat kundaligi
 - `gamification` - Gamifikatsiya ma'lumotlari
+
+## 🔗 API Integratsiyalari
+
+Loyiha quyidagi API lardan foydalanadi:
+
+### 🍎 Oziq-ovqat Ma'lumotlari
+- **CalorieNinjas** - Kaloriya va nutritsiya ma'lumotlari
+- **Nutritionix** - Keng qamrovli oziq-ovqat ma'lumotlari
+- **Edamam** - Batafsil nutritsiya tahlili
+- **USDA FoodData Central** - Hukumat ma'lumotlari
+- **Open Food Facts** - Bepul, ochiq ma'lumotlar bazasi
+
+### 🤖 AI va LLM
+- **OpenAI GPT** - Ovqat matnini tahlil qilish
+- **LangChain** - LLM integratsiyasi
 
 ## 🤝 Hissa Qo'shish
 
