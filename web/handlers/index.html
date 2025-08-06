@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthPilot Backend Test</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #0056b3;
+            margin-bottom: 30px;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            max-width: 1200px;
+            width: 100%;
+        }
+        .form-section {
+            background-color: #ffffff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            min-width: 300px;
+        }
+        .form-section h2 {
+            color: #007bff;
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="email"],
+        .form-group input[type="password"],
+        .form-group input[type="number"],
+        .form-group select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        .form-group input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result-section {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .result-section pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            background-color: #f1f3f5;
+            padding: 15px;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+        .error-message {
+            color: red;
+            font-weight: bold;
+        }
+        .success-message {
+            color: green;
+            font-weight: bold;
+        }
+        .current-user-info {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>HealthPilot Backend Test Console</h1>
+
+    <div class="current-user-info" id="currentUserInfo">
+        <h3>Current User Info (after Login/SignUp):</h3>
+        <p><strong>User ID:</strong> <span id="displayUserId">N/A</span></p>
+        <p><strong>Email:</strong> <span id="displayUserEmail">N/A</span></p>
+        <p><strong>Name:</strong> <span id="displayUserName">N/A</span></p>
+        <p><strong>JWT Token:</strong> <span id="displayJwtToken">N/A</span></p>
+    </div>
+
+    <div class="container">
+        <div class="form-section">
+            <h2>Google Login</h2>
+            <div id="g_id_onload"
+    
+                 data-client_id="385946821322-nspg1qermigb5i3et90r49lu8dnrdgmk.apps.googleusercontent.com" data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+            <div class="g_id_signin" data-type="standard" data-theme="outline" data-size="large"></div>
+        </div>
+
+        <div class="form-section">
+            <h2>Sign Up (Email/Password)</h2>
+            <div class="form-group">
+                <label for="signupEmail">Email:</label>
+                <input type="email" id="signupEmail" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="signupPassword">Password:</label>
+                <input type="password" id="signupPassword" value="password123">
+            </div>
+            <div class="form-group">
+                <label for="signupName">Name:</label>
+                <input type="text" id="signupName" value="Test User">
+            </div>
+            <button onclick="signUp()">Sign Up</button>
+        </div>
+
+        <div class="form-section">
+            <h2>Login (Email/Password)</h2>
+            <div class="form-group">
+                <label for="loginEmail">Email:</label>
+                <input type="email" id="loginEmail" value="test@example.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password:</label>
+                <input type="password" id="loginPassword" value="password123">
+            </div>
+            <button onclick="login()">Login</button>
+        </div>
+
+        <div class="form-section">
+            <h2>Update Profile</h2>
+            <p>Siz avval tizimga kirgan bo'lishingiz kerak.</p>
+            <div class="form-group">
+                <label for="updateName">Name:</label>
+                <input type="text" id="updateName">
+            </div>
+            <div class="form-group">
+                <label for="updateAge">Age:</label>
+                <input type="number" id="updateAge">
+            </div>
+            <div class="form-group">
+                <label for="updatePassword">New Password:</label>
+                <input type="password" id="updatePassword" placeholder="Leave empty to keep current password">
+            </div>
+            <div class="form-group">
+                <label for="updateWeight">Weight (kg):</label>
+                <input type="number" step="0.1" id="updateWeight">
+            </div>
+            <div class="form-group">
+                <label for="updateHeight">Height (cm):</label>
+                <input type="number" step="0.1" id="updateHeight">
+            </div>
+            <div class="form-group">
+                <label for="updateSex">Sex:</label>
+                <select id="updateSex">
+                    <option value="">Select</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <input type="checkbox" id="updateAllergy">
+                <label for="updateAllergy">Has Allergy?</label>
+            </div>
+            <div class="form-group">
+                <label for="updateAllergyType">Allergy Type (comma-separated):</label>
+                <input type="text" id="updateAllergyType" placeholder="e.g., pollen,dust">
+            </div>
+            <div class="form-group">
+                <label for="updateActivateType">Activity Level:</label>
+                <select id="updateActivateType">
+                    <option value="">Select</option>
+                    <option value="no_activity">Umuman faoliyatsiz</option>
+                    <option value="light_activity">Yengil faoliyat</option>
+                    <option value="moderate_activity">O'rtacha faoliyat</option>
+                    <option value="high_activity">Yuqori faoliyat</option>
+                    <option value="athlete">Professional sportchi</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="updateGoalsType">Goals Type:</label>
+                <select id="updateGoalsType">
+                    <option value="">Select</option>
+                    <option value="weight_loss">Vazn tashlash</option>
+                    <option value="muscle_gain">Mushak massasini oshirish</option>
+                    <option value="health_improvement">Sog'liqni yaxshilash</option>
+                    <option value="maintenance">Mavjud holatni saqlash</option>
+                </select>
+            </div>
+            <button onclick="updateProfile()">Update Profile</button>
+        </div>
+    </div>
+    <div class="form-section">
+        <h2>Kunlik Ovqat Statistikasi (AI bilan)</h2>
+        <div class="form-group">
+            <label for="foodInput">Nima yedingiz? (masalan: abedga 2 ta qovurilgan tuxum va bitta pomidor yedim)</label>
+            <input type="text" id="foodInput" placeholder="Matnli ovqat tavsifi">
+        </div>
+        <button onclick="addFoodStat()">AI orqali hisoblash va statistikaga qo‘shish</button>
+        <div id="foodStatResult"></div>
+    </div>
+    <div class="form-section">
+        <h2>Kunlik Target Status</h2>
+        <button onclick="fetchTargetStatus()">Kunlik holatni tekshirish</button>
+        <div id="targetStatusResult"></div>
+    </div>
+
+    <div class="result-section">
+        <h2>API Response:</h2>
+        <pre id="apiResponse"></pre>
+        <h2>AI (Gemini) Target:</h2>
+        <pre id="aiTarget"></pre>
+    </div>
+
+    <script>
+        // Global o'zgaruvchilar
+        let currentUserId = null;
+        let currentUserEmail = null;
+        let currentUserName = null;
+        let currentJwtToken = null;
+
+        // Current user ma'lumotlarini UI da yangilash
+        function updateCurrentUserDisplay() {
+            document.getElementById("displayUserId").innerText = currentUserId || "N/A";
+            document.getElementById("displayUserEmail").innerText = currentUserEmail || "N/A";
+            document.getElementById("displayUserName").innerText = currentUserName || "N/A";
+            // JWT tokeni juda uzun bo'lishi mumkin, qisman ko'rsatish
+            document.getElementById("displayJwtToken").innerText = currentJwtToken ? currentJwtToken.substring(0, 30) + "..." : "N/A";
+        }
+
+        // API javobini UI da ko'rsatish
+        function displayResponse(data, isError = false) {
+            const apiResponseElement = document.getElementById("apiResponse");
+            apiResponseElement.innerHTML = `<span class="${isError ? 'error-message' : 'success-message'}">${isError ? 'Error: ' : 'Success: '}</span>` +
+                                         `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // --- Google Login Handler ---
+        function handleCredentialResponse(response) {
+            const idToken = response.credential;
+            console.log("ID Token received from Google:", idToken);
+
+            fetch("http://localhost:8080/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ IDToken: idToken })
+            })
+            .then(res => {
+                if (!res.ok) {
+                    return res.json().then(errData => Promise.reject(errData.error || "Backend xatosi"));
+                }
+                return res.json();
+            })
+            .then(data => {
+                console.log("Backend javobi (Google Login):", data);
+                displayResponse(data);
+                // Foydalanuvchi ma'lumotlarini saqlash
+                currentUserId = data.user.ID;
+                currentUserEmail = data.user.email;
+                currentUserName = data.user.name;
+                currentJwtToken = data.token;
+                updateCurrentUserDisplay();
+                refreshUpdateForm(data.user); // Ma'lumotlarni formaga yuklash
+                fetchAiTarget();
+                fetchTargetStatus(); // Avtomatik chaqirish
+            })
+            .catch(error => {
+                console.error("Xatolik (Google Login):", error);
+                displayResponse({ message: "Google Login Failed", error: error.toString() }, true);
+            });
+        }
+
+        // --- Sign Up Handler ---
+        async function signUp() {
+            const email = document.getElementById("signupEmail").value;
+            const password = document.getElementById("signupPassword").value;
+            const name = document.getElementById("signupName").value;
+
+            try {
+                const response = await fetch("http://localhost:8080/signup", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password, name })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Sign Up Failed");
+                }
+                displayResponse(data);
+                // Foydalanuvchi ma'lumotlarini saqlash
+                currentUserId = data.user.ID;
+                currentUserEmail = data.user.email;
+                currentUserName = data.user.name;
+                currentJwtToken = data.token;
+                updateCurrentUserDisplay();
+                refreshUpdateForm(data.user); // Ma'lumotlarni formaga yuklash
+                fetchAiTarget();
+                fetchTargetStatus(); // Avtomatik chaqirish
+            } catch (error) {
+                console.error("Xatolik (Sign Up):", error);
+                displayResponse({ message: "Sign Up Failed", error: error.toString() }, true);
+            }
+        }
+
+        // --- Login Handler ---
+        async function login() {
+            const email = document.getElementById("loginEmail").value;
+            const password = document.getElementById("loginPassword").value;
+
+            try {
+                const response = await fetch("http://localhost:8080/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Login Failed");
+                }
+                displayResponse(data);
+                // Foydalanuvchi ma'lumotlarini saqlash
+                currentUserId = data.user.ID;
+                currentUserEmail = data.user.email;
+                currentUserName = data.user.name;
+                currentJwtToken = data.token;
+                updateCurrentUserDisplay();
+                refreshUpdateForm(data.user); // Ma'lumotlarni formaga yuklash
+                fetchAiTarget();
+                fetchTargetStatus(); // Avtomatik chaqirish
+            } catch (error) {
+                console.error("Xatolik (Login):", error);
+                displayResponse({ message: "Login Failed", error: error.toString() }, true);
+            }
+        }
+
+        // --- Update Profile Handler ---
+        async function updateProfile() {
+            if (!currentUserId || !currentJwtToken) {
+                displayResponse({ message: "Error: Please log in first to update profile." }, true);
+                return;
+            }
+
+            const updateData = {};
+            
+            // Foydalanuvchining asosiy ma'lumotlari
+            const name = document.getElementById("updateName").value;
+            if (name !== "") updateData.name = name;
+
+            const age = document.getElementById("updateAge").value;
+            if (age !== "") updateData.age = parseInt(age); 
+            
+            // Yangi Parol
+            const password = document.getElementById("updatePassword").value;
+            if (password !== "") { // Faqat agar parol kiritilgan bo'lsa yuboramiz
+                updateData.password = password; 
+            } else if (document.getElementById("updatePassword").dataset.initialValue !== undefined && document.getElementById("updatePassword").dataset.initialValue === "") {
+                // Agar oldingi paroli yo'q bo'lib, bo'sh yuborilsa, hech narsa qilmaymiz, chunki backendda yangilamaymiz.
+                // Agar oldingi paroli bor bo'lib, o'chirilgan bo'lsa ham shu yerga tushmaydi, chunki parol faqat o'zgarishi mumkin.
+            }
+
+
+            // Health ma'lumotlari (ichki ob'ekt)
+            const weight = document.getElementById("updateWeight").value;
+            const height = document.getElementById("updateHeight").value;
+            const sex = document.getElementById("updateSex").value;
+
+            const hasAllergy = document.getElementById("updateAllergy").checked;
+            const allergyType = document.getElementById("updateAllergyType").value;
+            const allergyTypesArray = allergyType ? allergyType.split(',').map(item => item.trim()) : [];
+            const activateType = document.getElementById("updateActivateType").value;
+
+            let healthPayload = {};
+            let isHealthDataPresent = false; 
+
+            if (weight !== "") { healthPayload.weight = parseFloat(weight); isHealthDataPresent = true; }
+            if (height !== "") { healthPayload.height = parseFloat(height); isHealthDataPresent = true; }
+            if (sex !== "") { healthPayload.sex = sex; isHealthDataPresent = true; }
+
+            let allergyPayload = {};
+            // `hasAllergy` (boolean) maydoni har doim yuborilishi kerak, agar `allergy` ob'ekti yaratilsa.
+            // `allergy_type` esa faqat qiymatga ega bo'lsa.
+            if (hasAllergy || allergyTypesArray.length > 0) {
+                allergyPayload.allergy = hasAllergy;
+                allergyPayload.allergy_type = allergyTypesArray;
+                healthPayload.allergy = allergyPayload;
+                isHealthDataPresent = true;
+            } else if (document.getElementById("updateAllergy").dataset.initialChecked === 'true' || allergyTypesArray.length === 0) {
+                // Agar checkbox oldin yoqilgan bo'lsa va endi o'chirilgan bo'lsa, uni false qilib yuborish
+                // Yoki agar allergyType bo'sh bo'lsa ham allergy ob'ektini yuborish kerak bo'lsa
+                allergyPayload.allergy = hasAllergy;
+                allergyPayload.allergy_type = []; // Bo'sh array yuborish
+                healthPayload.allergy = allergyPayload;
+                isHealthDataPresent = true;
+            }
+            
+
+            // Activate ma'lumotlari
+            if (activateType !== "") { 
+                healthPayload.activate = { activate_type: activateType }; 
+                isHealthDataPresent = true; 
+            } else if (document.getElementById("updateActivateType").dataset.initialValue !== undefined && document.getElementById("updateActivateType").dataset.initialValue !== "") {
+                 // Agar avvalgi qiymati bor bo'lsa va endi bo'shatilgan bo'lsa, bo'sh string yuborish
+                healthPayload.activate = { activate_type: "" };
+                isHealthDataPresent = true;
+            }
+
+
+            if (isHealthDataPresent) {
+                updateData.health = healthPayload;
+            }
+
+
+            // Goals ma'lumotlari (ichki ob'ekt)
+            const goalsType = document.getElementById("updateGoalsType").value;
+            if (goalsType !== "") {
+                updateData.goals = { goals_type: goalsType };
+            } else if (document.getElementById("updateGoalsType").dataset.initialValue !== undefined && document.getElementById("updateGoalsType").dataset.initialValue !== "") {
+                // Agar avvalgi qiymati bor bo'lsa va endi bo'shatilgan bo'lsa, bo'sh string yuborish
+                updateData.goals = { goals_type: "" };
+            }
+
+
+            console.log("Update Data sent to backend:", updateData);
+
+            try {
+                const response = await fetch(`http://localhost:8080/users/${currentUserId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentJwtToken}` // JWT tokenini yuborish
+                    },
+                    body: JSON.stringify(updateData)
+                });
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || "Profile Update Failed");
+                }
+                displayResponse(data);
+                // Profil yangilangandan keyin UI ni yangilash
+                currentUserName = data.user.name; 
+                updateCurrentUserDisplay();
+                refreshUpdateForm(data.user); // Yangilangan ma'lumotlar bilan formani to'ldirish
+                // AI targetni olish va ko'rsatish
+                setTimeout(fetchAiTarget, 3000);
+                fetchTargetStatus(); // Avtomatik chaqirish
+            } catch (error) {
+                console.error("Xatolik (Update Profile):", error);
+                displayResponse({ message: "Profile Update Failed", error: error.toString() }, true);
+            }
+        }
+        // AI targetni olish va ekranga chiqarish
+        async function fetchAiTarget() {
+            if (!currentUserId || !currentJwtToken) return;
+            try {
+                const response = await fetch(`http://localhost:8080/users/${currentUserId}/target`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${currentJwtToken}`
+                    }
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    document.getElementById("aiTarget").innerText = "AI target topilmadi yoki hali hisoblanmagan.";
+                    return;
+                }
+                document.getElementById("aiTarget").innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById("aiTarget").innerText = "AI target olishda xatolik: " + error.toString();
+            }
+        }
+
+        // Qo'shimcha funksiya: Formani qaytgan user ma'lumotlari bilan to'ldirish
+        function refreshUpdateForm(user) {
+            document.getElementById("updateName").value = user.name || "";
+            document.getElementById("updateAge").value = user.age || "";
+            document.getElementById("updatePassword").value = ""; // Parol maydonini tozalash (xavfsizlik uchun)
+
+            if (user.health) {
+                document.getElementById("updateWeight").value = user.health.weight || "";
+                document.getElementById("updateHeight").value = user.health.height || "";
+                document.getElementById("updateSex").value = user.health.sex || "";
+                
+                if (user.health.allergy) {
+                    const allergyCheckbox = document.getElementById("updateAllergy");
+                    allergyCheckbox.checked = user.health.allergy.allergy || false;
+                    allergyCheckbox.dataset.initialChecked = user.health.allergy.allergy ? 'true' : 'false'; // Boshlang'ich holatni saqlash
+                    
+                    document.getElementById("updateAllergyType").value = (user.health.allergy.allergy_type && user.health.allergy.allergy_type.length > 0) ? user.health.allergy.allergy_type.join(',') : "";
+                } else { // Agar health.allergy mavjud bo'lmasa
+                    document.getElementById("updateAllergy").checked = false;
+                    document.getElementById("updateAllergy").dataset.initialChecked = 'false';
+                    document.getElementById("updateAllergyType").value = "";
+                }
+
+                if (user.health.activate) {
+                    const activateInput = document.getElementById("updateActivateType");
+                    activateInput.value = user.health.activate.activate_type || "";
+                    activateInput.dataset.initialValue = user.health.activate.activate_type || ""; // Boshlang'ich holatni saqlash
+                } else {
+                    document.getElementById("updateActivateType").value = "";
+                    document.getElementById("updateActivateType").dataset.initialValue = "";
+                }
+            } else { // Agar user.health mavjud bo'lmasa, barcha health maydonlarini tozalash
+                document.getElementById("updateWeight").value = "";
+                document.getElementById("updateHeight").value = "";
+                document.getElementById("updateSex").value = "";
+                document.getElementById("updateAllergy").checked = false;
+                document.getElementById("updateAllergy").dataset.initialChecked = 'false';
+                document.getElementById("updateAllergyType").value = "";
+                document.getElementById("updateActivateType").value = "";
+                document.getElementById("updateActivateType").dataset.initialValue = "";
+            }
+
+            if (user.goals) {
+                const goalsInput = document.getElementById("updateGoalsType");
+                goalsInput.value = user.goals.goals_type || "";
+                goalsInput.dataset.initialValue = user.goals.goals_type || ""; // Boshlang'ich holatni saqlash
+            } else {
+                document.getElementById("updateGoalsType").value = "";
+                document.getElementById("updateGoalsType").dataset.initialValue = "";
+            }
+        }
+
+        async function addFoodStat() {
+            if (!currentUserId || !currentJwtToken) {
+                document.getElementById("foodStatResult").innerHTML = '<span class="error-message">Avval tizimga kiring!</span>';
+                return;
+            }
+            const description = document.getElementById("foodInput").value;
+            if (!description) {
+                document.getElementById("foodStatResult").innerHTML = '<span class="error-message">Ovqat tavsifini kiriting!</span>';
+                return;
+            }
+            document.getElementById("foodStatResult").innerHTML = 'AI hisoblamoqda...';
+            try {
+                const response = await fetch(`http://localhost:8080/users/${currentUserId}/food`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${currentJwtToken}`
+                    },
+                    body: JSON.stringify({ description })
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    document.getElementById("foodStatResult").innerHTML = `<span class='error-message'>${data.error || "Xatolik"}</span>`;
+                    return;
+                }
+                let msg = "";
+                if (data.message && data.message.includes("yakunladingiz")) {
+                    msg += `<span class='success-message' style='font-size:1.2em; color:darkgreen;'><b>🎉 ${data.message}</b></span><br>`;
+                } else {
+                    msg += `<span class='success-message'>${data.message}</span><br>`;
+                }
+                msg += `<b>AI natijasi:</b> <pre>${JSON.stringify(data.ai_result, null, 2)}</pre>`;
+                msg += `<b>Kunlik statistikangiz:</b> <pre>${JSON.stringify(data.stat, null, 2)}</pre>`;
+                document.getElementById("foodStatResult").innerHTML = msg;
+            } catch (error) {
+                document.getElementById("foodStatResult").innerHTML = `<span class='error-message'>${error.toString()}</span>`;
+            }
+        }
+
+        async function fetchTargetStatus() {
+            if (!currentUserId || !currentJwtToken) {
+                document.getElementById("targetStatusResult").innerHTML = '<span class="error-message">Avval tizimga kiring!</span>';
+                return;
+            }
+            document.getElementById("targetStatusResult").innerHTML = 'Yuklanmoqda...';
+            try {
+                const response = await fetch(`http://localhost:8080/users/${currentUserId}/target/status`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${currentJwtToken}`
+                    }
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    document.getElementById("targetStatusResult").innerHTML = `<span class='error-message'>${data.error || "Xatolik"}</span>`;
+                    return;
+                }
+                let msg = "";
+                if (data.completed) {
+                    msg += `<span class='success-message' style='font-size:1.2em; color:darkgreen;'><b>🎉 ${data.message}</b></span><br>`;
+                } else {
+                    msg += `<span class='success-message'>${data.message}</span><br>`;
+                }
+                msg += `<b>AI Target:</b> <pre>${JSON.stringify(data.target, null, 2)}</pre>`;
+                msg += `<b>Kunlik statistikangiz:</b> <pre>${JSON.stringify(data.stat, null, 2)}</pre>`;
+                document.getElementById("targetStatusResult").innerHTML = msg;
+            } catch (error) {
+                document.getElementById("targetStatusResult").innerHTML = `<span class='error-message'>${error.toString()}</span>`;
+            }
+        }
+
+        // Sahifa yuklanganda current user ma'lumotlarini nolga tiklash
+        document.addEventListener('DOMContentLoaded', updateCurrentUserDisplay);
+    </script>
+</body>
+</html>

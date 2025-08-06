@@ -1,21 +1,45 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import List, Optional
 
-class FoodInput(BaseModel):
-    text: str  # Masalan: "2 ta tuxum va bitta kofe ichdim"
-
-class FoodItem(BaseModel):
-    name: str
-    amount: float
+class NutritionInfo(BaseModel):
+    """Oziq-ovqat ma'lumotlari"""
+    food_name: str
+    quantity: float
     unit: str
     calories: float
     protein: float
     fat: float
-    carbs: float
+    carbohydrate: float
+    water: float
+    confidence: float
 
-class FoodOutput(BaseModel):
-    items: List[FoodItem]
+class FoodAnalysisRequest(BaseModel):
+    """Ovqat tahlili uchun request"""
+    food_text: str
+    user_id: Optional[str] = None
+    meal_type: Optional[str] = None
+
+class FoodAnalysisResponse(BaseModel):
+    """Ovqat tahlili natijasi"""
+    food_text: str
+    nutrition_items: List[NutritionInfo]
     total_calories: float
     total_protein: float
     total_fat: float
-    total_carbs: float 
+    total_carbohydrate: float
+    total_water: float
+    confidence: float
+
+class FoodItem(BaseModel):
+    """LLM tomonidan aniqlangan ovqat elementi"""
+    name: str
+    quantity: float
+    unit: str
+    description: Optional[str] = None
+
+class APIResponse(BaseModel):
+    """API response wrapper"""
+    success: bool
+    data: Optional[dict] = None
+    error: Optional[str] = None
+    message: Optional[str] = None 
