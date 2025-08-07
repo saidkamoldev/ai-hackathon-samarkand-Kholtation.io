@@ -54,24 +54,24 @@ func (a *Achievement) BeforeCreate(tx *gorm.DB) error {
 
 // UserStats foydalanuvchi statistikasi
 type UserStats struct {
-	UserID           uuid.UUID `json:"user_id"`
-	Level            int       `json:"level"`
-	Experience       int       `json:"experience"`
-	ExperienceToNext int       `json:"experience_to_next"` // keyingi darajaga qancha kerak
-	Streak           int       `json:"streak"`
-	TotalDays        int       `json:"total_days"`
-	CaloriesGoal     int       `json:"calories_goal"`
-	WaterGoal        int       `json:"water_goal"`
-	ProteinGoal      int       `json:"protein_goal"`
-	TotalAchievements int      `json:"total_achievements"`
+	UserID             uuid.UUID     `json:"user_id"`
+	Level              int           `json:"level"`
+	Experience         int           `json:"experience"`
+	ExperienceToNext   int           `json:"experience_to_next"` // keyingi darajaga qancha kerak
+	Streak             int           `json:"streak"`
+	TotalDays          int           `json:"total_days"`
+	CaloriesGoal       int           `json:"calories_goal"`
+	WaterGoal          int           `json:"water_goal"`
+	ProteinGoal        int           `json:"protein_goal"`
+	TotalAchievements  int           `json:"total_achievements"`
 	RecentAchievements []Achievement `json:"recent_achievements"`
-	LastLogin        time.Time `json:"last_login"`
+	LastLogin          time.Time     `json:"last_login"`
 }
 
 // AddExperience tajriba qo'shish
 func (g *Gamification) AddExperience(exp int) {
 	g.Experience += exp
-	
+
 	// Daraja hisoblash (har 1000 XP = 1 daraja)
 	newLevel := (g.Experience / 1000) + 1
 	if newLevel > g.Level {
@@ -81,7 +81,6 @@ func (g *Gamification) AddExperience(exp int) {
 
 // GetExperienceToNext keyingi darajaga qancha XP kerak
 func (g *Gamification) GetExperienceToNext() int {
-	currentLevelExp := (g.Level - 1) * 1000
 	nextLevelExp := g.Level * 1000
 	return nextLevelExp - g.Experience
 }
@@ -89,7 +88,7 @@ func (g *Gamification) GetExperienceToNext() int {
 // UpdateStreak streak yangilash
 func (g *Gamification) UpdateStreak() {
 	now := time.Now()
-	
+
 	// Agar oxirgi login bugun bo'lmasa
 	if g.LastLogin.Day() != now.Day() {
 		// Agar kecha bo'lsa, streak davom etadi
@@ -100,7 +99,7 @@ func (g *Gamification) UpdateStreak() {
 			g.Streak = 1
 		}
 	}
-	
+
 	g.LastLogin = now
 	g.TotalDays++
 }
@@ -108,7 +107,7 @@ func (g *Gamification) UpdateStreak() {
 // CheckAchievements yutuqlarni tekshirish
 func (g *Gamification) CheckAchievements() []Achievement {
 	var achievements []Achievement
-	
+
 	// Streak yutuqlari
 	if g.Streak == 7 && !g.hasAchievement("streak_7") {
 		achievements = append(achievements, Achievement{
@@ -121,7 +120,7 @@ func (g *Gamification) CheckAchievements() []Achievement {
 			EarnedAt:    time.Now(),
 		})
 	}
-	
+
 	// Daraja yutuqlari
 	if g.Level == 5 && !g.hasAchievement("level_5") {
 		achievements = append(achievements, Achievement{
@@ -134,7 +133,7 @@ func (g *Gamification) CheckAchievements() []Achievement {
 			EarnedAt:    time.Now(),
 		})
 	}
-	
+
 	return achievements
 }
 
@@ -142,4 +141,4 @@ func (g *Gamification) CheckAchievements() []Achievement {
 func (g *Gamification) hasAchievement(achievementType string) bool {
 	// Haqiqiy implementatsiyada database dan tekshiriladi
 	return false
-} 
+}

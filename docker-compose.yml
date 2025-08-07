@@ -62,7 +62,7 @@ services:
   # Frontend (Next.js) - agar kerak bo'lsa
   frontend:
     build:
-      context: ./frontend
+      context: ./web
       dockerfile: Dockerfile
     container_name: yogin-frontend
     environment:

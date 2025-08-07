@@ -3,7 +3,6 @@ package filter
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -43,7 +42,7 @@ func (h *Handler) AnalyzeFood(c *gin.Context) {
 	}
 
 	// Rejani yangilash
-	if err := h.updatePlan(req.UserID, req.PlanID, aiResponse); err != nil {
+	if err := h.updatePlan(req.UserID.String(), req.PlanID.String(), aiResponse); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Rejani yangilashda xatolik"})
 		return
 	}
@@ -55,11 +54,11 @@ func (h *Handler) AnalyzeFood(c *gin.Context) {
 		FoodName:     req.FoodText,
 		Quantity:     1,
 		Unit:         "serving",
-		Calories:     aiResponse.TotalCalories,
-		Protein:      aiResponse.TotalProtein,
-		Fat:          aiResponse.TotalFat,
-		Carbohydrate: aiResponse.TotalCarbohydrate,
-		Water:        aiResponse.TotalWater,
+		Calories:     (*aiResponse)["TotalCalories"].(float64),
+		Protein:      (*aiResponse)["TotalProtein"].(float64),
+		Fat:          (*aiResponse)["TotalFat"].(float64),
+		Carbohydrate: (*aiResponse)["TotalCarbohydrate"].(float64),
+		Water:        (*aiResponse)["TotalWater"].(float64),
 		MealType:     req.MealType,
 		LoggedAt:     req.LoggedAt,
 	}
@@ -70,7 +69,7 @@ func (h *Handler) AnalyzeFood(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Ovqat muvaffaqiyatli qo'shildi",
+		"message":  "Ovqat muvaffaqiyatli qo'shildi",
 		"analysis": aiResponse,
 		"food_log": foodLog,
 	})
@@ -113,7 +112,7 @@ func (h *Handler) LogFood(c *gin.Context) {
 	}
 
 	// Rejani yangilash
-	if err := h.updatePlanFromFoodLog(req.UserID, req.PlanID, foodLog); err != nil {
+	if err := h.updatePlanFromFoodLog(req.UserID.String(), req.PlanID.String(), foodLog); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Rejani yangilashda xatolik"})
 		return
 	}
@@ -151,7 +150,7 @@ func (h *Handler) LogFood(c *gin.Context) {
 func (h *Handler) GetDailySummary(c *gin.Context) {
 	userID := c.Param("user_id")
 	dateStr := c.Query("date")
-	
+
 	var targetDate time.Time
 	if dateStr == "" {
 		targetDate = time.Now().Truncate(24 * time.Hour)
@@ -165,16 +164,16 @@ func (h *Handler) GetDailySummary(c *gin.Context) {
 	}
 
 	var foodLogs []FoodLog
-	if err := h.db.Where("user_id = ? AND logged_at >= ? AND logged_at < ?", 
+	if err := h.db.Where("user_id = ? AND logged_at >= ? AND logged_at < ?",
 		userID, targetDate, targetDate.Add(24*time.Hour)).Find(&foodLogs).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Ovqat kundaligi topilmadi"})
 		return
 	}
 
 	summary := DailySummary{
-		Date:            targetDate,
-		MealBreakdown:   make(map[string]float64),
-		FoodCount:       len(foodLogs),
+		Date:          targetDate,
+		MealBreakdown: make(map[string]float64),
+		FoodCount:     len(foodLogs),
 	}
 
 	for _, log := range foodLogs {
@@ -183,7 +182,7 @@ func (h *Handler) GetDailySummary(c *gin.Context) {
 		summary.TotalFat += log.Fat
 		summary.TotalCarbohydrate += log.Carbohydrate
 		summary.TotalWater += log.Water
-		
+
 		// Ovqat turi bo'yicha kaloriyalar
 		summary.MealBreakdown[log.MealType] += log.Calories
 	}
@@ -194,27 +193,27 @@ func (h *Handler) GetDailySummary(c *gin.Context) {
 // callAIServer AI server ga so'rov yuborish
 func (h *Handler) callAIServer(foodText string) (*map[string]interface{}, error) {
 	aiServerURL := "http://localhost:8000/api/analyze-food"
-	
+
 	requestBody := map[string]string{
 		"food_text": foodText,
 	}
-	
+
 	jsonData, err := json.Marshal(requestBody)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	resp, err := http.Post(aiServerURL, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return nil, err
 	}
-	
+
 	return &result, nil
 }
 
@@ -228,4 +227,4 @@ func (h *Handler) updatePlan(userID, planID string, aiResponse *map[string]inter
 func (h *Handler) updatePlanFromFoodLog(userID, planID string, foodLog FoodLog) error {
 	// Bu yerda plan yangilash logikasi
 	return nil
-} 
+}

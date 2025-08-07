@@ -2,11 +2,10 @@ package user
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type Handler struct {
@@ -85,7 +84,7 @@ func (h *Handler) Create(c *gin.Context) {
 // @Router /users/{id} [get]
 func (h *Handler) GetByID(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	var user User
 	if err := h.db.Where("id = ?", id).First(&user).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Foydalanuvchi topilmadi"})
@@ -121,7 +120,7 @@ func (h *Handler) GetByID(c *gin.Context) {
 // @Router /users/{id} [put]
 func (h *Handler) Update(c *gin.Context) {
 	id := c.Param("id")
-	
+
 	var req UpdateUserRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -225,4 +224,4 @@ func (h *Handler) Login(c *gin.Context) {
 			CreatedAt:     user.CreatedAt,
 		},
 	})
-} 
+}

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -28,12 +29,12 @@ func NewHandler(db *gorm.DB) *Handler {
 // @Router /gamification/{user_id} [get]
 func (h *Handler) GetUserStats(c *gin.Context) {
 	userID := c.Param("user_id")
-	
+
 	var gamification Gamification
 	if err := h.db.Where("user_id = ?", userID).First(&gamification).Error; err != nil {
 		// Agar gamifikatsiya yo'q bo'lsa, yangi yaratish
 		gamification = Gamification{
-			UserID:     userID,
+			UserID:     uuid.MustParse(userID),
 			Level:      1,
 			Experience: 0,
 			Streak:     0,
@@ -94,7 +95,8 @@ func (h *Handler) AddAchievement(c *gin.Context) {
 
 	// Foydalanuvchi tajribasini oshirish
 	var gamification Gamification
-	if err := h.db.Where("user_id = ?", achievement.UserID).First(&gamification).Error == nil {
+	err := h.db.Where("user_id = ?", achievement.UserID).First(&gamification).Error
+	if err == nil {
 		gamification.AddExperience(100) // Har bir yutuq uchun 100 XP
 		h.db.Save(&gamification)
 	}
@@ -114,7 +116,7 @@ func (h *Handler) AddAchievement(c *gin.Context) {
 // @Router /gamification/{user_id}/progress [put]
 func (h *Handler) UpdateProgress(c *gin.Context) {
 	userID := c.Param("user_id")
-	
+
 	var progressData map[string]interface{}
 	if err := c.ShouldBindJSON(&progressData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -155,7 +157,7 @@ func (h *Handler) UpdateProgress(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Progress muvaffaqiyatli yangilandi",
+		"message":          "Progress muvaffaqiyatli yangilandi",
 		"new_achievements": newAchievements,
 	})
 }
@@ -177,7 +179,7 @@ func (h *Handler) GetLeaderboard(c *gin.Context) {
 	}
 
 	var leaderboard []map[string]interface{}
-	
+
 	// Eng yuqori darajadagi foydalanuvchilar
 	h.db.Table("gamifications").
 		Select("user_id, level, experience, streak, total_days").
@@ -198,9 +200,9 @@ func (h *Handler) GetLeaderboard(c *gin.Context) {
 // @Router /gamification/{user_id}/achievements [get]
 func (h *Handler) GetAchievements(c *gin.Context) {
 	userID := c.Param("user_id")
-	
+
 	var achievements []Achievement
 	h.db.Where("user_id = ?", userID).Order("earned_at desc").Find(&achievements)
 
 	c.JSON(http.StatusOK, achievements)
-} 
+}
